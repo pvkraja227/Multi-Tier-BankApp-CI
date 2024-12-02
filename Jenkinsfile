@@ -14,6 +14,12 @@ pipeline {
     
     stages {
 
+        stage('clean workspace') {
+            steps {
+                cleanWs() // clean the workspace
+            }
+        }
+
         stage('Git Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/pvkraja227/Multi-Tier-BankApp-CI.git'        
@@ -88,58 +94,51 @@ pipeline {
                 }
             }
         }
-        
-        stage('k8-Deploy') {
+
+        stage ('Update YAML Manifest in Other Repo') {
             steps {
-                withKubeConfig(caCertificate: '', clusterName: 'devopsshack-cluster', contextName: '', credentialsId: 'k8-cred', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'https://5A2F1C9F022B77CE670614A08A5CFF2D.gr7.ap-southeast-2.eks.amazonaws.com') {
-                    sh "kubectl apply -f deployment-service.yml" 
-                    sleep 5
-                }    
-            }
-        }
-        
-        stage('Verify Deployment') {
-            steps {
-                withKubeConfig(caCertificate: '', clusterName: 'devopsshack-cluster', contextName: '', credentialsId: 'k8-cred', namespace: 'webapps', restrictKubeConfigAccess: false, serverUrl: 'https://5A2F1C9F022B77CE670614A08A5CFF2D.gr7.ap-southeast-2.eks.amazonaws.com') {
-                    sh "kubectl get pods -n webapps"
-                    sh "kubectl get svc -n webapps"
-                    
-                }    
+                script {
+                withCredentials([gitUsernamePassword(credentialsId: 'git-cred', gitToolName: 'Default')]) {
+                    sh '''
+                        # clone the repo
+                        git clone https://github.com/pvkraja227/Multi-Tier-BankApp-CD.git
+                        cd Multi-Tier-BankApp-CD
+
+                        # List files to confirm the presence of bankapp-ds.yml
+                        ls -l bankapp
+
+                        # get the absolute path for the current directory
+                        repo_dir=$(pwd)
+
+                        # use the absolute path for sed
+                        sed -i 's|image: rajapvk23/Banking-App:.*|image: rajapvk23/Banking-App:'${DOCKER_TAG}'|' ${repo_dir}/bankapp/bankapp-ds.yml
+                    '''
+
+                    // confirm the change
+                    sh '''
+                        echo "updated YAML file contents:"
+                        cat Multi-Tier-BankApp-CD/bankapp/bankapp-ds.yml
+                    '''
+
+                    // configure git for committing changes and pushing
+                    sh '''
+                        cd Multi-Tier-BankApp-CD # ensure you are inside the cloned repo
+                        git config user.email "venkat.klce227@gmail.com"
+                        git config user.name "pvkraja227"
+                    '''
+
+                    // commit and push the updated yaml file back to the other repository
+                    sh '''
+                        cd Multi-Tier-BankApp-CD
+                        ls
+                        git add bankapp/bankapp-ds.yml
+                        git commit -m "Update image tag to ${DOCKER_TAG}"
+                        git push origin main
+                    '''
+                }
+                }
             }
         }
     }
-    post {
-    always {
-        script {
-            def jobName = env.JOB_NAME
-            def buildNumber = env.BUILD_NUMBER
-            def pipelineStatus = currentBuild.result ?: 'UNKNOWN'
-            def bannerColor = pipelineStatus.toUpperCase() == 'SUCCESS' ? 'green' : 'red'
-
-            def body = """
-                <html>
-                <body>
-                <div style="border: 4px solid ${bannerColor}; padding: 10px;">
-                <h2>${jobName} - Build ${buildNumber}</h2>
-                <div style="background-color: ${bannerColor}; padding: 10px;">
-                <h3 style="color: white;">Pipeline Status: ${pipelineStatus.toUpperCase()}</h3>
-                </div>
-                <p>Check the <a href="${BUILD_URL}">console output</a>.</p>
-                </div>
-                </body>
-                </html>
-            """
-
-            emailext (
-                subject: "${jobName} - Build ${buildNumber} - ${pipelineStatus.toUpperCase()}",
-                body: body,
-                to: 'pvk.raja@gmail.com',
-                from: 'jenkins@example.com',
-                replyTo: 'jenkins@example.com',
-                mimeType: 'text/html',
-                attachmentsPattern: 'trivy-image-report.html'
-            )
-        }
-    }
 }
-}
+
