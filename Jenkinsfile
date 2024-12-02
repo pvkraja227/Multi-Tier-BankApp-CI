@@ -55,7 +55,7 @@ pipeline {
         stage('Publish Artifacts') {
             steps {
                 withMaven(globalMavenSettingsConfig: 'maven-settings', jdk: '', maven: 'maven3', mavenSettingsConfig: '', traceability: true) {
-                sh "mvn deploy"
+                sh "mvn deploy -DskipTests=true"
                 }
                 
             }
@@ -81,7 +81,7 @@ pipeline {
         stage('Docker Push') {
             steps {
                 script {
-                withDockerRegistry(credentialsId: 'docker-cred', toolName: 'docker') {
+                withDockerRegistry(credentialsId: 'docker-cred') {
                 
                 sh "docker push rajapvk23/Banking-App:${params.DOCKER_TAG}"    
                 }
