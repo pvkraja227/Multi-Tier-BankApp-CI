@@ -36,7 +36,7 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('sonar-server') {
+                withSonarQubeEnv('sonar') {
                 sh "$SONAR_HOME/bin/sonar-scanner -Dsonar.projectName=Bank-App -Dsonar.projectKey=Bank-App -Dsonar.java.binaries=target"
                 }
             }
