@@ -66,7 +66,7 @@ pipeline {
                 script {
                 withDockerRegistry(credentialsId: 'docker-cred') {
                 
-                sh "docker build -t rajapvk23/Banking-App:${params.DOCKER_TAG}" ."    
+                sh "docker build -t rajapvk23/Banking-App:${params.DOCKER_TAG} ."    
                 }
                 }
             }
@@ -74,7 +74,7 @@ pipeline {
         
         stage('Trivy Image Scan') {
             steps {
-                sh "trivy image --format table -o image.html rajapvk23/Banking-App:v1"
+                sh "trivy image --format table -o image.html rajapvk23/Banking-App:${params.DOCKER_TAG}"
             }
         }
         
@@ -83,7 +83,7 @@ pipeline {
                 script {
                 withDockerRegistry(credentialsId: 'docker-cred', toolName: 'docker') {
                 
-                sh "docker push rajapvk23/blogging-apps:latest"    
+                sh "docker push rajapvk23/Banking-App:${params.DOCKER_TAG}"    
                 }
                 }
             }
