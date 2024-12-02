@@ -12,7 +12,7 @@ pipeline {
 
         stage('Git Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/pvkraja227/BloggingApp-EKS-Terraform.git'        
+                git branch: 'main', url: 'https://github.com/pvkraja227/Multi-Tier-BankApp-CI.git'        
             }
         }
         
@@ -37,7 +37,7 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('sonar-server') {
-                sh "$SONAR_HOME/bin/sonar-scanner -Dsonar.projectName=Blogging-App -Dsonar.projectKey=Blogging-App -Dsonar.java.binaries=target"
+                sh "$SONAR_HOME/bin/sonar-scanner -Dsonar.projectName=Bank-App -Dsonar.projectKey=Bank-App -Dsonar.java.binaries=target"
                 }
             }
         }
