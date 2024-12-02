@@ -1,5 +1,9 @@
 pipeline { 
     agent any
+
+    parameters {
+        string(name: 'DOCKER_TAG', defaultValue: 'latest', description: 'Docker tag')
+    }
     
     tools {
         maven 'maven3'
@@ -62,7 +66,7 @@ pipeline {
                 script {
                 withDockerRegistry(credentialsId: 'docker-cred') {
                 
-                sh "docker build -t rajapvk23/Banking-App:v1 ."    
+                sh "docker build -t rajapvk23/Banking-App:${params.DOCKER_TAG}" ."    
                 }
                 }
             }
