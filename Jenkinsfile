@@ -50,7 +50,7 @@ pipeline {
 
         stage('Publish Artifacts') {
             steps {
-                withMaven(globalMavenSettingsConfig: 'maven-settings', jdk: 'jdk17', maven: 'maven3', mavenSettingsConfig: '', traceability: true) {
+                withMaven(globalMavenSettingsConfig: 'maven-settings', jdk: '', maven: 'maven3', mavenSettingsConfig: '', traceability: true) {
                 sh "mvn deploy"
                 }
                 
@@ -60,9 +60,9 @@ pipeline {
         stage('Docker Build & Tag') {
             steps {
                 script {
-                withDockerRegistry(credentialsId: 'docker-cred', toolName: 'docker') {
+                withDockerRegistry(credentialsId: 'docker-cred') {
                 
-                sh "docker build -t rajapvk23/blogging-apps:latest ."    
+                sh "docker build -t rajapvk23/Banking-App:latest ."    
                 }
                 }
             }
@@ -70,7 +70,7 @@ pipeline {
         
         stage('Trivy Image Scan') {
             steps {
-                sh "trivy image --format table -o image.html rajapvk23/blogging-apps:latest"
+                sh "trivy image --format table -o image.html rajapvk23/Banking-App:latest"
             }
         }
         
