@@ -27,6 +27,10 @@ install aws cli - 3 steps
 
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
 sudo apt install unzip
+unzip awscliv2.zip 
+sudo ./aws/install
+
+aws --version
 
 aws configure
 
@@ -40,8 +44,6 @@ terraform plan - 17
 terraform apply --auto-approve
 
 aws eks --region ap-south-1 update-kubeconfig --name devopsshack-cluster
-
-sudo snap install kubectl --classic
 
 kubectl get nodes - 3 worker
 
@@ -64,7 +66,7 @@ echo <encrypted secret> | base64 -d)))  OR OR OR
 kubectl get secret -n argocd argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d ... copy pwd (before ubuntu)
 
 dashboard: edit user info/change pwd logout n login
-pwd: oaIwv8yOnVv2RG5j
+pwd: 8LeOzkPatrwoouVm
 
 
 ec2 -3/Jenkins/SonarQube/nexus - t2.med
@@ -98,7 +100,7 @@ newgrp docker
 docker run -d -p 9000:9000 sonarqube:lts-community
 chrome: publicIP:9000 (admin/admin)
 
-token: squ_d39639cb09942a552d89d0461ecfd1ba5f6af9ce
+token: squ_c3d818884576f3bcaedc1dd9e68c589c63dc349f
 
 Nexus:
 
@@ -135,8 +137,8 @@ add maven/name: maven3
 manage jenkins/Credentials:
 
 Global/add credentials
-GitHub username/token/ID: git-cred and in desc
-docker username/pwd/ID: docker-cred and in desc
+GitHub username with pwd/ID: git-cred and in desc (check token expired)
+docker username with pwd/ID: docker-cred and in desc
 SonarQube username/token/ID: sonar-cred and in desc
 
 Manage Jenkins/system: (where we configure servers)
@@ -169,32 +171,32 @@ add 2 servers in servers section
 then, submit (we can communicate with Nexus)
 
 new item: create pipeline
-name: CI Pipeline
+name: CI_Pipeline (no space)
 discard old builds: 2
 
 create stages: in Jenkinsfile
 
 
-build with parameters:
-DOCKER_TAG: v3 / build
+build with parameters: change parameter to p1
 
-result: in repo/version is changed to v3
+result: in repo CD/version is changed to p1
 
 CD Part: (ArgoCD)
 
-settings/connect repo/via https/type git/url CD/username pvkraja227/pwd token/connect
+settings/repositories/connect repo/via https/type git/url CD/username pvkraja227/pwd token/connect
 
 status: successful
 
 applications/new app/name: bankapp/project name: default/sync policy: automatic/click "self heal"/click "auto create namespace"/click "skip schema validation"/
 
-repository URL/revision: main/path: "." /Directory: click on Directory recurse
+repository URL/revision: main/path: "." 
 
 destination: URL: https://kubernetes.dafault.svc
 namespace: xyz (any value, bcz we haven't created any namepsace)
 
+Directory: click on Directory recurse
 
-connect:
+create
 
 we have bankapp - 4 services (ep (end point)/eps (end point slice)/bank app - 2 pods/mysql - 1 pod)
 
@@ -222,4 +224,28 @@ build
 ArgoCD - 2 replicasets are present
 
 in CD manifest file: mentioned revisionHistoryLimit: 1 
-(so, v3 last deployment replicaset and new deployment replicaset both are present in argoCD)
+(so, p1 last deployment replicaset and new deployment replicaset both are present in argoCD)
+
+ex: 
+previous: p1/3 pods
+current: p3/3 pods + p1 rs also will be present
+
+version p1: in ArgoCD
+
+bank app --> 4 (bankapp-service/mysql-service/bankapp/MySQL)
+
+bankapp-service - 2 (ep bankapp-service/eps bankapp-service-kjhul)
+mysql-service - 2 (ep mysql-service/eps mysql-service-ygtfd)
+bankapp - 1 rs --> 3 pods
+MySQL - 1 rs --> 1 pod
+
+after changing version to p3:
+
+bankapp-service - 2 (ep bankapp-service/eps bankapp-service-kjhul)
+mysql-service - 2 (ep mysql-service/eps mysql-service-ygtfd)
+bankapp - 2 rs --> 3 pods only
+(((in CD manifest file: mentioned revisionHistoryLimit: 1)))
+MySQL - 1 rs --> 1 pod only
+
+ep: endpoint
+eps: endpointslice
