@@ -111,7 +111,7 @@ pipeline {
                         repo_dir=$(pwd)
 
                         # use the absolute path for sed
-                        sed -i 's|image: rajapvk23/Banking-App:.*|image: rajapvk23/Banking-App:'${DOCKER_TAG}'|' ${repo_dir}/bankapp/bankapp-ds.yml
+                        sed -i 's|image: rajapvk23/banking-app:.*|image: rajapvk23/banking-app:'${DOCKER_TAG}'|' ${repo_dir}/bankapp/bankapp-ds.yml
                     '''
 
                     // confirm the change
