@@ -202,11 +202,13 @@ we have bankapp - 4 services (ep (end point)/eps (end point slice)/bank app - 2 
 
 for suppose in CD manifest, change pods 2 to 1 --> immediately it reflects in ArgoCD if not .. we have to add webhook
 
+since we have enabled auto sync, it shld work .. orelse,
+
 copy url of argoCD ..github/settings/webhooks/
 URL / content type: application/json
-click on disable ssl
+if http, make sure to disable ssl verification
 add webhook
-
+click on webhook/recent deliveries tab/ tick mark (works fine)
 
 now goto jenkins pipeline/build with parameters: v4/build
 error, bcz in workspace previous repo is present .. so, first delete it
